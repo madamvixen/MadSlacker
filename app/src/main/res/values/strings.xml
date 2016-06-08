@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">MadSlacker</string>
+    <string name="geofence_id">IntrepidLabs</string>
+</resources>
