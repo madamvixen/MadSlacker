@@ -2,8 +2,10 @@ package com.intrepid.miniproject.madslacker;
 
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,6 +17,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Result;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
@@ -26,30 +29,41 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener,GoogleApiClient.ConnectionCallbacks,ResultCallback {
+public class MainActivity extends FragmentActivity implements GoogleApiClient.OnConnectionFailedListener,GoogleApiClient.ConnectionCallbacks {
 
-    public static final double INTREPID_LATI = 46.367513;
-    public static final double INTREPID_LONG = -71.080152;
-    public static final float RADIUS = 50;
+    public static final double INTREPID_LATI = 42.3670646;
+    public static final double INTREPID_LONG = -71.0823675;
+    public static final float RADIUS = 10;
 
-
+    GeofencingRequest geofencingRequest;
+    PendingIntent geofencePendingIntent;
+    List<Geofence> geofenceList = new ArrayList<>();
 
     @BindView(R.id.statusTextView) TextView Tv_PostStatus;
 
     public GoogleApiClient googleApiClient;
     public FetchLocationService fetchLocationService;
-    GeofencingRequest geofencingRequest;
-    PendingIntent geofencePendingIntent;
-    List<Geofence> geofenceList = new ArrayList<>();
-    Geofence geoFence;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        buildGeoFence();
+    }
+
+    @Override
+    public void onStart(){
+        super.onStart();
         this.buildGoogleApiClient();
-        this.buildGeoFence();
+    }
+
+    @OnClick(R.id.startGeoFencingButton)
+    public void startGeoFencing(View view){
+        Toast.makeText(this, "Started Geofencing", Toast.LENGTH_SHORT).show();
+//        buildGeoFence();
+        startGeoFencing();
     }
 
     //Building Google API Client to access Location Services
@@ -64,8 +78,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     }
 
     //Building GEOFENCE of 50 meters around Intrepid Labs
-    private void buildGeoFence(){
-        geoFence = new Geofence.Builder()
+    public void buildGeoFence(){
+        Geofence geoFence = new Geofence.Builder()
                 .setRequestId("intrepidlabs")
                 .setExpirationDuration(Geofence.NEVER_EXPIRE)
                 .setCircularRegion(INTREPID_LATI,INTREPID_LONG,RADIUS)
@@ -76,31 +90,38 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         geofenceList.add(geoFence);
     }
 
-    @Override
-    public void onResume(){
-        super.onResume();
-        geofencePendingIntent = createGeoFencePendingIntent();
-        createGeoFenceRequest();
-
-    }
 
     //Create GeoFencing Request to monitor the entry of device in the circular region
-    private void createGeoFenceRequest(){
-        geofencingRequest = new GeofencingRequest.Builder()
+    private GeofencingRequest createGeoFenceRequest(){
+        return (new GeofencingRequest.Builder()
+                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_DWELL)
                 .addGeofences(geofenceList)
-                .build();
+                .build());
     }
 
-    //Create GeoFence Pending Intent
+    //Create GeoFence Pending Intent - calls
     private PendingIntent createGeoFencePendingIntent(){
 
-        if(geofencePendingIntent == null) {
-            Intent intent = new Intent(getApplicationContext(), FetchLocationService.class);
-            geofencePendingIntent = PendingIntent.getService(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        if(geofencePendingIntent != null){
+            return geofencePendingIntent;
         }
 
-        return geofencePendingIntent;
+        Intent broadcastIntent = new Intent(this, GeoFenceTransitionService.class);
+        return PendingIntent.getService(this, 0, broadcastIntent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
+
+    public void startGeoFencing(){
+
+        LocationServices.GeofencingApi.addGeofences(googleApiClient, createGeoFenceRequest(), createGeoFencePendingIntent()).setResultCallback(new  ResultCallback<Status>() {
+            @Override
+            public void onResult(Status status) {
+                if (status.isSuccess()) {
+                    Log.d("MadSlacker", "geofence creation successful");
+                }
+            }
+        });
+    }
+
 
     @OnClick(R.id.postButton)
     public void postToSlack(View view){
@@ -114,17 +135,25 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     @Override
     public void onConnected(@Nullable Bundle bundle) {
 
-        LocationServices.GeofencingApi.addGeofences(googleApiClient,geofencingRequest,geofencePendingIntent).setResultCallback(this);
+        //geofencePendingIntent = createGeoFencePendingIntent();
+        startGeoFencing();
 
         //start service for fetching users location
-        fetchLocationService = new FetchLocationService(getApplicationContext(), googleApiClient);
+        fetchLocationService = new FetchLocationService(this, googleApiClient);
         Intent fetchLocationIntent = new Intent();
         fetchLocationService.onHandleIntent(fetchLocationIntent);
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-
+//        LocationServices.GeofencingApi.removeGeofences(googleApiClient,createGeoFencePendingIntent()).setResultCallback(new ResultCallback<Status>() {
+//            @Override
+//            public void onResult(Status status) {
+//                if(status.isSuccess()){
+//                    Log.d("MadSlacker", "Geofences removed");
+//                }
+//            }
+//        });
     }
 
     @Override
@@ -132,8 +161,5 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         googleApiClient.reconnect();
     }
 
-    @Override
-    public void onResult(Result result) {
-        Toast.makeText(getApplicationContext(),"Added GeoFence successfully", Toast.LENGTH_SHORT).show();
-    }
+
 }

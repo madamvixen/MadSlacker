@@ -4,8 +4,10 @@ import android.app.IntentService;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -21,6 +23,7 @@ import com.google.android.gms.location.LocationServices;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.jar.Manifest;
 
 /**
  * Created by malabika on 6/8/16.
@@ -31,8 +34,6 @@ public class FetchLocationService extends IntentService implements GoogleApiClie
     Context context;
     GoogleApiClient inServiceApiClient;
     LocationRequest fetchLocationRequest;
-    GeofencingEvent geofencingEvent;
-
 
     public FetchLocationService(){
         super("FetchLocationService");
@@ -59,9 +60,9 @@ public class FetchLocationService extends IntentService implements GoogleApiClie
         //Redirects here when called startService from MainActivity
         Log.e("MadSlacker","In OnHandleINtent");
         LocationServices.FusedLocationApi.requestLocationUpdates(inServiceApiClient,fetchLocationRequest,this);
-
-        geofencingEvent = GeofencingEvent.fromIntent(intent);
     }
+
+
 
     //Create Location Request to fetch location updates every 15 minutes
     private void createLocationRequest(){
@@ -69,7 +70,6 @@ public class FetchLocationService extends IntentService implements GoogleApiClie
         fetchLocationRequest = LocationRequest.create()
                                 .setInterval(interval)
                                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
     }
 
     @Override
@@ -93,12 +93,14 @@ public class FetchLocationService extends IntentService implements GoogleApiClie
         Log.d("MadSlacker","Latitude: "+location.getLatitude());
 
         //Monitor geofence entrance and exit- w.r.t Intrepid location
-        int geofenceTransition = geofencingEvent.getGeofenceTransition();
+        //Receive updates via broadcast receiver
 
-        if(geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER){
-            Log.d("FLS", "Entered geofence near Intrepid Labs");
-            List TriggeringGeofences = geofencingEvent.getTriggeringGeofences();
-            Log.d("FLS"," Geofences triggered: "+ TriggeringGeofences.toString());
-        }
+//        int geofenceTransition = geofencingEvent.getGeofenceTransition();
+//
+//        if(geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER){
+//            Log.d("FLS", "Entered geofence near Intrepid Labs");
+//            List TriggeringGeofences = geofencingEvent.getTriggeringGeofences();
+//            Log.d("FLS"," Geofences triggered: "+ TriggeringGeofences.toString());
+//        }
     }
 }

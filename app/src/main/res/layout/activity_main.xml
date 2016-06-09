@@ -12,11 +12,20 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="I&apos;m Here!"
+        android:text="@string/i_m_here"
         android:id="@+id/postButton"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="177dp" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/startGeoFencingButton"
+        android:text="@string/start_geofencing"
+        android:layout_alignTop="@+id/postButton"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="61dp" />
 
     <TextView
         android:layout_width="wrap_content"
