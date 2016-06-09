@@ -28,16 +28,17 @@ import java.util.jar.Manifest;
 /**
  * Created by malabika on 6/8/16.
  */
-public class FetchLocationService extends IntentService implements GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener,LocationListener{
+public class FetchLocationService extends IntentService implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
 
     Context context;
     GoogleApiClient inServiceApiClient;
     LocationRequest fetchLocationRequest;
 
-    public FetchLocationService(){
+    public FetchLocationService() {
         super("FetchLocationService");
     }
+
     /**
      * Creates an IntentService.  Invoked by your subclass's constructor.
      *
@@ -47,7 +48,7 @@ public class FetchLocationService extends IntentService implements GoogleApiClie
         super(name);
     }
 
-    public FetchLocationService(Context context, GoogleApiClient googleApiClient){
+    public FetchLocationService(Context context, GoogleApiClient googleApiClient) {
         super(String.valueOf(context));
         this.context = context;
         inServiceApiClient = googleApiClient;
@@ -58,8 +59,18 @@ public class FetchLocationService extends IntentService implements GoogleApiClie
     @Override
     protected void onHandleIntent(Intent intent) {
         //Redirects here when called startService from MainActivity
-        Log.e("MadSlacker","In OnHandleINtent");
-        LocationServices.FusedLocationApi.requestLocationUpdates(inServiceApiClient,fetchLocationRequest,this);
+        Log.e("MadSlacker", "In OnHandleINtent");
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(inServiceApiClient, fetchLocationRequest, this);
     }
 
 
@@ -92,15 +103,10 @@ public class FetchLocationService extends IntentService implements GoogleApiClie
         Log.d("MadSlacker","Longitude: "+location.getLongitude());
         Log.d("MadSlacker","Latitude: "+location.getLatitude());
 
-        //Monitor geofence entrance and exit- w.r.t Intrepid location
-        //Receive updates via broadcast receiver
+        /**Monitor distance w.r.t Intrepid location
+         * Provide notification on close to 50 meters from Intrepid
+         */
 
-//        int geofenceTransition = geofencingEvent.getGeofenceTransition();
-//
-//        if(geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER){
-//            Log.d("FLS", "Entered geofence near Intrepid Labs");
-//            List TriggeringGeofences = geofencingEvent.getTriggeringGeofences();
-//            Log.d("FLS"," Geofences triggered: "+ TriggeringGeofences.toString());
-//        }
+
     }
 }
