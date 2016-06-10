@@ -61,7 +61,9 @@ public class FetchLocationService extends IntentService implements GoogleApiClie
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        LocationServices.FusedLocationApi.requestLocationUpdates(inServiceApiClient, fetchLocationRequest, this);
+        if(inServiceApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(inServiceApiClient, fetchLocationRequest, this);
+        }
     }
 
 
@@ -93,11 +95,7 @@ public class FetchLocationService extends IntentService implements GoogleApiClie
         Log.d("MadSlacker", "Longitude: " + location.getLongitude());
         Log.d("MadSlacker", "Latitude: " + location.getLatitude());
 
-        /**Monitor distance w.r.t Intrepid location
-         * Provide notification on close to 50 meters from Intrepid
-         */
-
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -107,43 +105,14 @@ public class FetchLocationService extends IntentService implements GoogleApiClie
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        //myLocation = LocationServices.FusedLocationApi.getLastLocation(inServiceApiClient);
+        myLocation = LocationServices.FusedLocationApi.getLastLocation(inServiceApiClient);
 
-        if (location != null) {
+        if (myLocation != null) {
 //            Toast.makeText(context, "Latitude: " +myLocation.getLatitude() +" , " + "Longitude: "+myLocation.getLongitude(), Toast.LENGTH_SHORT).show();
             final Intent intent = new Intent(context, MainActivity.locationReceiver.class);
             intent.addCategory("LOCATION CHANGED");
-            intent.setAction("UPDATELOCATION");
-            intent.putExtra("newlocation", location);
-//            //Attempt to get driving distance from Google Map Directions API
-//            new Thread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    try {
-//                        distances.add(getDistance(myLocation, BUSCH_CAMPUS_CENTER));
-//                        distances.add(getDistance(myLocation, RUTGERS_STUDENT_CENTER));
-//                        distances.add(getDistance(myLocation, OLD_QUEENS));
-//                        distances.add(getDistance(myLocation, HIGH_POINT_SOLUTIONS_STADIUM));
-//                        distances.add(getDistance(myLocation, ELECTRICAL_ENG_BUILDING));
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    } catch (JSONException e) {
-//                        e.printStackTrace();
-//                    }
-//
-//                }
-//            }).start();
-//
-//            //Straight Line distances between the 2 locations
-//            if(distances.isEmpty())
-//            {
-//                distances.add(getStraightDistance(myLocation, BUSCH_CAMPUS_CENTER));
-//                distances.add(getStraightDistance(myLocation, RUTGERS_STUDENT_CENTER));
-//                distances.add(getStraightDistance(myLocation, OLD_QUEENS));
-//                distances.add(getStraightDistance(myLocation, HIGH_POINT_SOLUTIONS_STADIUM));
-//                distances.add(getStraightDistance(myLocation, ELECTRICAL_ENG_BUILDING));
-//            }
-//            intent.putStringArrayListExtra("distances", distances);
+            intent.setAction(String.valueOf(R.string.UpdateLocation));
+            intent.putExtra(String.valueOf(R.string.NewLocation), myLocation);
             context.sendBroadcast(intent);
         }
     }
