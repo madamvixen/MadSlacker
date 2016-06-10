@@ -42,7 +42,7 @@
             </intent-filter>
         </activity>
 
-
+        <receiver android:name=".MainActivity$locationReceiver"/>
 
     </application>
 

@@ -1,48 +1,52 @@
 package com.intrepid.miniproject.madslacker;
 
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.location.Location;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.Result;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class MainActivity extends FragmentActivity implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
+public class MainActivity extends FragmentActivity implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks, OnMapReadyCallback {
 
     public static final double INTREPID_LATI = 42.3670646;
     public static final double INTREPID_LONG = -71.0823675;
     public static final float RADIUS = 10;
 
+    static GoogleMap googleMap;
     GeofencingRequest geofencingRequest;
     PendingIntent geofencePendingIntent;
     List<Geofence> geofenceList = new ArrayList<>();
 
-    @BindView(R.id.statusTextView)
-    TextView Tv_PostStatus;
+//    @BindView(R.id.statusTextView)
+//    TextView Tv_PostStatus;
 
     public GoogleApiClient googleApiClient;
     public FetchLocationService fetchLocationService;
@@ -62,6 +66,11 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.On
     public void onStart() {
         super.onStart();
         this.buildGoogleApiClient();
+
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        SupportMapFragment supportMapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.mapFragment);
+        supportMapFragment.getMapAsync(this);
     }
 
 
@@ -133,11 +142,11 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.On
 
 
     @OnClick(R.id.postButton)
-    public void postToSlack(View view){
+    public void postToSlack(View view) {
         Toast.makeText(this, "Posting to Slack", Toast.LENGTH_SHORT).show();
 
         //Call Service to connect to the slack webhook URL - HTTP Connection
-        Intent postIntent = new Intent(getApplicationContext(),SlackPostService.class);
+        Intent postIntent = new Intent(getApplicationContext(), SlackPostService.class);
         startService(postIntent);
     }
 
@@ -174,4 +183,70 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.On
     }
 
 
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        this.googleMap = googleMap;
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        googleMap.setMyLocationEnabled(true);
+    }
+
+    public static class locationReceiver extends BroadcastReceiver {
+
+        Bundle extras;
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction() == "UPDATELOCATION") {
+                extras = intent.getExtras();
+                //Distances = intent.getStringArrayListExtra("distances");
+                Location myLastlocation = (Location) extras.get("newlocation");
+                updateMarker(myLastlocation);
+
+                //update the Database to generate heatmap
+//                Timer _timer = new Timer("check in");
+//                final HMDatabaseHandler dbh = new HMDatabaseHandler(context, null, null, 1);
+//
+//                _timer.scheduleAtFixedRate(new TimerTask() {
+//                    @Override
+//                    public void run() {
+//                        checkedInLocation _checkedInLocation = new checkedInLocation(dbh.getLocationsCount(), "LocatioNinja-autocheckin",
+//                                String.valueOf(myLastlocation.getLatitude()), String.valueOf(myLastlocation.getLongitude()));
+//                        dbh.createHMLocation(_checkedInLocation);
+//                    }
+//                }, 10000, 300000);//schedule task of updating the locations every 5 mins
+//            }
+
+            }
+        }
+    }
+
+    //Zooming to current location
+    static boolean mapupd = false;
+    public static void updateMarker(Location location) {
+        Log.e("MadSlacker","updating marker...");
+        if (location != null) {
+            Log.e("LocatioNinja", "my Location not null");
+
+            LatLng myPresentLoc = new LatLng(location.getLatitude(), location.getLongitude());
+            if (!mapupd) {
+//                mMap.addMarker(new MarkerOptions().position(myPresentLoc).title("I am Here"));
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myPresentLoc, 13));
+                mapupd = true;
+            }
+//            longitudeTV.setText(String.valueOf(location.getLongitude()));
+//            latitudeTV.setText(String.valueOf(location.getLatitude()));
+//            updateAddress(location);
+        }
+        else
+            Log.e("MadSlacker","Location is NULL");
+    }
 }
