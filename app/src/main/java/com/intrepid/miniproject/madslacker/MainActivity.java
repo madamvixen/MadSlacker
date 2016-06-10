@@ -42,7 +42,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.On
     public static final double INTREPID_LONG = -71.0823675;
     public static final float RADIUS = 10;
     public static final int ZOOM_LEVEL = 15;
-    public static final LatLng INTREPID_LAB = new LatLng(INTREPID_LATI, INTREPID_LONG);
+
 
     static GoogleMap myGoogleMap;
     static boolean mapUpdate = false;
@@ -152,11 +152,11 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.On
 
     /** Posts to the slack channel #whos-here by invoking SlackPostService
      *
-     * @param view
+     *
      */
 
     @OnClick(R.id.postButton)
-    public void postToSlack(View view) {
+    public void postToSlack() {
         Toast.makeText(this, "Posting to Slack", Toast.LENGTH_SHORT).show();
 
         //Call Service to connect to the slack webhook URL - HTTP Connection
@@ -218,7 +218,9 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.On
             return;
         }
         myGoogleMap.setMyLocationEnabled(true);
-        myGoogleMap.addMarker(new MarkerOptions().position(INTREPID_LAB).title("Busch Campus Center"));
+
+        LatLng intrepidLabsLatLng = new LatLng(INTREPID_LATI,INTREPID_LONG);
+        myGoogleMap.addMarker(new MarkerOptions().position(intrepidLabsLatLng).title("Intrepid Labs"));
 
     }
 
@@ -234,23 +236,41 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.On
             if (intent.getAction().equals(String.valueOf(R.string.UpdateLocation))){
                 extras = intent.getExtras();
                 Location myLastlocation = (Location) extras.get(String.valueOf(R.string.NewLocation));
-                updateMarker(myLastlocation);
+                String myDistToIntrepid = (String) extras.get(String.valueOf(R.string.DistanceToIntrepid));
+                updateCurrentLocation(myLastlocation);
+                if(isCloseToIntrepid(myDistToIntrepid)){
+                    Log.e("MadSlacker", "Near Intrepid labs");
+                }
 
             }
         }
+
+
     }
 
     //Zooming to current location
 
-    public static void updateMarker(Location location) {
+    public static void updateCurrentLocation(Location location) {
         if (location != null) {
-
             LatLng myPresentLoc = new LatLng(location.getLatitude(), location.getLongitude());
             if (!mapUpdate) {
                 myGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myPresentLoc, ZOOM_LEVEL));
                 mapUpdate = true;
             }
         }
+    }
+
+    /**check if distance to IntrepidLabs from current location is below 50meters
+     *
+     */
+
+    public static boolean isCloseToIntrepid(String distance) {
+
+        double distToILabs = Double.parseDouble(distance);
+        if(distToILabs <= RADIUS){
+            return true;
+        }
+        return false;
     }
 
     @Override

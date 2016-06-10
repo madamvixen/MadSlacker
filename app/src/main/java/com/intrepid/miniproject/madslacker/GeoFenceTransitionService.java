@@ -12,9 +12,6 @@ import com.google.android.gms.location.GeofencingEvent;
 
 import java.util.List;
 
-/**
- * Created by malabika on 6/9/16.
- */
 public class GeoFenceTransitionService extends IntentService implements GoogleApiClient.OnConnectionFailedListener,GoogleApiClient.ConnectionCallbacks {
 
 

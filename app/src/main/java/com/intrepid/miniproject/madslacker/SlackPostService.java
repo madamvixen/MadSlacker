@@ -19,7 +19,6 @@ import okio.BufferedSink;
  */
 public class SlackPostService extends IntentService {
 
-    String helloMessage = "{\"username\":\"mdas\",\"text\":\"I'm Here\"}";
     String slack_URL = "https://hooks.slack.com/services/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";
 
     public SlackPostService(){
@@ -38,6 +37,7 @@ public class SlackPostService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         //Connect to Square - Post Message and Stop service after
         SlackPostModel slackPostModel = new SlackPostModel();
+        String helloMessage = "{\"username\":\"mdas\",\"text\":\"I'm Here\"}";
         String jsonMessage = slackPostModel.setPostMessage(helloMessage);
 
         try {

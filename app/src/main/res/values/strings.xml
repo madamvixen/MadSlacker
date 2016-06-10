@@ -5,4 +5,5 @@
     <string name="i_m_here">I\'m Here!</string>
     <string name="UpdateLocation">UpdateLocation</string>
     <string name="NewLocation">NewLocation</string>
+    <string name="DistanceToIntrepid">DistanceToIntrepid</string>
 </resources>
