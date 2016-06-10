@@ -49,8 +49,7 @@ public class FetchLocationService extends IntentService implements GoogleApiClie
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        //Redirects here when called startService from MainActivity
-        Log.e("MadSlacker", "In OnHandleINtent");
+        //Redirects here when called from MainActivity
         if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -92,8 +91,6 @@ public class FetchLocationService extends IntentService implements GoogleApiClie
 
     @Override
     public void onLocationChanged(Location location) {
-        Log.d("MadSlacker", "Longitude: " + location.getLongitude());
-        Log.d("MadSlacker", "Latitude: " + location.getLatitude());
 
         if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -108,7 +105,6 @@ public class FetchLocationService extends IntentService implements GoogleApiClie
         myLocation = LocationServices.FusedLocationApi.getLastLocation(inServiceApiClient);
 
         if (myLocation != null) {
-//            Toast.makeText(context, "Latitude: " +myLocation.getLatitude() +" , " + "Longitude: "+myLocation.getLongitude(), Toast.LENGTH_SHORT).show();
             final Intent intent = new Intent(context, MainActivity.locationReceiver.class);
             intent.addCategory("LOCATION CHANGED");
             intent.setAction(String.valueOf(R.string.UpdateLocation));

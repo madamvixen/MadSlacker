@@ -1,8 +1,6 @@
 package com.intrepid.miniproject.madslacker;
 
 import android.app.IntentService;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,9 +8,7 @@ import android.util.Log;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.Geofence;
-import com.google.android.gms.location.GeofencingApi;
 import com.google.android.gms.location.GeofencingEvent;
-import com.google.android.gms.location.LocationServices;
 
 import java.util.List;
 
@@ -21,7 +17,6 @@ import java.util.List;
  */
 public class GeoFenceTransitionService extends IntentService implements GoogleApiClient.OnConnectionFailedListener,GoogleApiClient.ConnectionCallbacks {
 
-    private GoogleApiClient googleApiClient;
 
     public GeoFenceTransitionService(){
         super("GeoFenceTransitionService");
@@ -44,11 +39,10 @@ public class GeoFenceTransitionService extends IntentService implements GoogleAp
     @Override
     protected void onHandleIntent(Intent intent) {
 
-        Log.e("MadSlacker","inside on handle intent of geofencing transition");
+//        Log.e("MadSlacker","inside on handle intent of geofencing transition");
         GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
 
         if(geofencingEvent.hasError()){
-            Log.e("MadSlacker", "Error in Geofencing event");
             return;
         }
         else{

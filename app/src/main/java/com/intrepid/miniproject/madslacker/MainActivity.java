@@ -52,8 +52,6 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.On
     PendingIntent geofencePendingIntent;
     List<Geofence> geofenceList = new ArrayList<>();
 
-//    @BindView(R.id.statusTextView)
-//    TextView Tv_PostStatus;
 
     public GoogleApiClient googleApiClient;
     public FetchLocationService fetchLocationService;
@@ -65,7 +63,7 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.On
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        //uncomment the line below to use geoFencing
+        //To use geoFencing, make useGeoFence = true
         if(useGeoFence)
             buildGeoFence();
     }
@@ -249,7 +247,6 @@ public class MainActivity extends FragmentActivity implements GoogleApiClient.On
 
             LatLng myPresentLoc = new LatLng(location.getLatitude(), location.getLongitude());
             if (!mapUpdate) {
-//                mMap.addMarker(new MarkerOptions().position(myPresentLoc).title("I am Here"));
                 myGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myPresentLoc, ZOOM_LEVEL));
                 mapUpdate = true;
             }
